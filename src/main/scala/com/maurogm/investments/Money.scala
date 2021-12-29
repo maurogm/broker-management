@@ -1,4 +1,4 @@
-package com.maurogm.brokers
+package com.maurogm.investments
 
 case class Money(currency: String, amount: BigDecimal) {
   def checkSameCurrency(that: Money): Unit = require(

@@ -1,12 +1,12 @@
-package com.maurogm.brokers.etl.brokers
+package com.maurogm.investments.etl.brokers
 
-import com.maurogm.brokers
-import com.maurogm.brokers.etl.Utils.StringParsingExtensions.{
+import com.maurogm.investments
+import com.maurogm.investments.etl.Utils.StringParsingExtensions.{
   parseLatinNumber,
   remove$
 }
-import com.maurogm.brokers.etl.Utils.{dateParser, dateTimeParser, readFileAsSeq}
-import com.maurogm.brokers.{Money, Movement, MovementType, Order}
+import com.maurogm.investments.etl.Utils.{dateParser, dateTimeParser, readFileAsSeq}
+import com.maurogm.investments.{Money, Movement, MovementType, Order}
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
@@ -135,7 +135,7 @@ case class ParsedMovementIol(
 
   override def toMovement: Movement = {
     val (movementType, maybeTicker) = parseTipoMovimiento(tipoMovimiento)
-    brokers.Movement(
+    investments.Movement(
       Iol.broker,
       fechaTrx,
       movementType,
@@ -186,7 +186,7 @@ case class ParsedOrderIol(
   ) strToMoney("ARS", value.remove$)
   else strToMoney(currency, value)
 
-  override def toOrder: Order = brokers.Order(
+  override def toOrder: Order = investments.Order(
     Iol.broker,
     fechaTrx,
     exchange,

@@ -1,9 +1,12 @@
-package com.maurogm.brokers.etl
+package com.maurogm.investments.etl
 
 import java.io.File
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.{Try, Using}
+import requests.Response
+import play.api.libs.json.{JsValue, Json}
+
 
 object Utils {
 
@@ -13,6 +16,13 @@ object Utils {
       def replaceDecimal: String = str.replace(",", ".")
       def remove$ : String = str.replace("$", "")
       def parseLatinNumber: String = str.dropPoint.replaceDecimal
+    }
+  }
+
+  object ResponseExtensions {
+    extension (response: Response) {
+      def toString: String = response.text()
+      def toJson: JsValue = Json.parse(response.text())
     }
   }
 

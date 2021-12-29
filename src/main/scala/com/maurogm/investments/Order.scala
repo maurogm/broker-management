@@ -1,4 +1,4 @@
-package com.maurogm.brokers
+package com.maurogm.investments
 
 import java.time.LocalDateTime
 

@@ -1,4 +1,4 @@
-package com.maurogm.brokers.util
+package com.maurogm.investments.util
 
 import com.typesafe.config.{Config, ConfigFactory}
 

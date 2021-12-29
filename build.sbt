@@ -11,6 +11,7 @@ lazy val root = (project in file("."))
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.9.0" // for using scalacheck from scalatest
     ).map(_ % "test") ++ Seq(
       "com.typesafe" % "config" % "1.4.0",
+      "com.typesafe.play" %% "play-json" % "2.10.0-RC5",
       "com.lihaoyi" %% "requests" % "0.7.0"
     )
   )
