@@ -1,6 +1,6 @@
 package com.maurogm.investments.etl.market.iolAPI
 
-import com.maurogm.investments.etl.Utils.ResponseExtensions.toJson
+import com.maurogm.investments.etl.util.Utils.ResponseExtensions.toJson
 import com.maurogm.investments.util.ConfigModule
 import play.api.libs.json.{JsValue, Json}
 import requests.Response

@@ -1,32 +1,33 @@
 package com.maurogm.investments.etl.market.iolAPI
 
 import com.maurogm.investments.Money
-import com.maurogm.investments.etl.Utils.ResponseExtensions.toJson
+import com.maurogm.investments.etl.market.iolAPI.URLs.makeRequest
 import com.maurogm.investments.etl.market.iolAPI.{
   AuthenticationToken,
   DailyData,
   URLs
 }
+import com.maurogm.investments.etl.util.DateGapFiller.{
+  consecutiveFillOfDates,
+  consecutiveMap
+}
+import com.maurogm.investments.etl.util.Utils.ResponseExtensions.toJson
+import com.maurogm.investments.etl.util.Utils.{readFromCSV, writeAsCsv}
+import com.maurogm.investments.etl.util.{CSVParser, CSVSerializer}
 import play.api.libs.json.{JsValue, Json}
 import requests.Response
 
+import java.io.{BufferedWriter, File, FileWriter}
+import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.Try
 
-object IolAPI {
-  def main(args: Array[String]): Unit = {
+object HistoricalData {
 
-    given authToken: AuthenticationToken = new AuthenticationToken
-    val bearerToken = authToken.getAccessToken
-    println(bearerToken)
-
-    val history =
-      getHistoricalData("bCBA", "AL30", "2021-12-20", "2021-12-26", false)
-
-    println(history.mkString("\n"))
-  }
-
-  /** @param exchange
+  /** Makes a request to IOL API's to get the historical data of a certain
+    * active.
+    *
+    * @param exchange
     *   The exchange in which `ticker` is traded. One of `bCBA`, `nYSE`,
     *   `nASDAQ`, `aMEX`, `bCS`, `rOFX`.
     */
@@ -35,22 +36,13 @@ object IolAPI {
       ticker: String,
       dateStart: LocalDate | String,
       dateEnd: LocalDate | String,
-      adjust: Boolean
+      adjust: Boolean = false
   )(using authToken: AuthenticationToken): Seq[DailyData] = {
     val url =
       URLs.historicalDataUrl(exchange, ticker, dateStart, dateEnd, adjust)
     makeRequest(url).toJson
       .as[Seq[Map[String, JsValue]]]
       .map(parseHistoricalData(_).toDailyData)
-  }
-
-  def makeRequest(
-      url: String
-  )(using authToken: AuthenticationToken): Response = {
-    requests.get(
-      url = url,
-      headers = Map("Authorization" -> s"Bearer ${authToken.getAccessToken}")
-    )
   }
 
   private def parseHistoricalData(jsonMap: Map[String, JsValue]): Cotizacion = {
@@ -94,6 +86,67 @@ object IolAPI {
       jsonMap("laminaMinima").as[Double],
       jsonMap("lote").as[Double]
     )
+  }
+
+  private def localFilepath(exchange: String, ticker: String): String =
+    s"src/main/resources/market/${exchange.toUpperCase}/${ticker.toUpperCase}.csv"
+
+  private def writeHistoryData(
+      data: Seq[DailyData],
+      exchange: String,
+      ticker: String,
+      append: Boolean = true
+  ): Unit = {
+
+    writeAsCsv(data, localFilepath(exchange, ticker), false)
+  }
+
+  def readHistoryFromCsv[T](
+      exchange: String,
+      ticker: String
+  ): Seq[DailyData] = {
+    readFromCSV[DailyData](localFilepath(exchange, ticker))
+  }
+
+  def main(args: Array[String]): Unit = {
+    given authToken: AuthenticationToken = new AuthenticationToken
+
+    val bearerToken = authToken.getAccessToken
+    println(bearerToken)
+
+    val exchange = "BCBA"
+    val ticker = "GD30C"
+    val dateStart = "2021-12-15"
+    // val dateEnd = "2021-12-21"
+    val dateEnd = "2021-12-28"
+
+    val history =
+      getHistoricalData(exchange, ticker, dateStart, dateEnd, false)
+
+    println(history.sorted.mkString("\n"))
+
+    println("consecutiveMap:")
+    val consecutives = consecutiveMap(history)
+    println(
+      consecutives
+        .map { case (a, b) => (a.fechaHora, b.fechaHora) }
+        .mkString("\n")
+    )
+    println("consecutiveFill:")
+    val filled = consecutives.flatMap(consecutiveFillOfDates)
+    println(filled.map(_.toCsv).mkString("\n"))
+    println(filled.map { _.getDateTime }.mkString("\n"))
+
+    writeHistoryData(
+      consecutiveMap(history).flatMap(consecutiveFillOfDates),
+      exchange,
+      ticker,
+      false
+    )
+
+    println("READ:")
+    val read = readHistoryFromCsv("bcba", "AL30")
+    read.foreach(println)
   }
 }
 

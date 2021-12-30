@@ -1,12 +1,14 @@
-package com.maurogm.investments.etl
+package com.maurogm.investments.etl.util
 
-import java.io.File
+import com.maurogm.investments.etl.market.iolAPI.DailyData
+import com.maurogm.investments.etl.util.CSVParser
+import play.api.libs.json.{JsValue, Json}
+import requests.Response
+
+import java.io.{BufferedWriter, File, FileWriter}
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.{Try, Using}
-import requests.Response
-import play.api.libs.json.{JsValue, Json}
-
 
 object Utils {
 
@@ -45,10 +47,28 @@ object Utils {
       ucLines.toSeq
     }
   }
+
+  def readFromCSV[T: CSVParser](filename: String): Seq[T] = {
+    readFileAsSeq(filename: String).get.map(CSVParser.fromCsv)
+  }
+
+  def writeAsCsv[T](
+      data: Seq[T with CSVSerializer],
+      filePath: String,
+      append: Boolean,
+      headers: Option[Seq[String]] = None
+  ): Unit = {
+    val bw = BufferedWriter(FileWriter(File(filePath), append))
+    if (headers.isDefined) bw.write(headers.mkString(",") + "\n")
+    data.map(_.toCsv + "\n").foreach(bw.write)
+    bw.close()
+  }
+
   def getListOfFiles(dir: File): Seq[String] = dir.listFiles
     .withFilter(_.isFile) // list only files
     .map(_.getName)
     .toList
   def getListOfCSVs(path: String): Seq[String] =
     getListOfFiles(File(path)).filter(_.endsWith(".csv"))
+
 }

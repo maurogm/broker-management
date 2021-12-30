@@ -1,5 +1,7 @@
 package com.maurogm.investments.etl.market.iolAPI
 
+import requests.Response
+
 import java.time.LocalDate
 
 object URLs {
@@ -15,5 +17,14 @@ object URLs {
   ): String = {
     val adjustStr: String = if adjust then "ajustada" else "sinAjustar"
     s"$BASE_URL/api/v2/$exchange/Titulos/$ticker/Cotizacion/seriehistorica/$dateStart/$dateEnd/$adjustStr"
+  }
+
+  def makeRequest(
+      url: String
+  )(using authToken: AuthenticationToken): Response = {
+    requests.get(
+      url = url,
+      headers = Map("Authorization" -> s"Bearer ${authToken.getAccessToken}")
+    )
   }
 }
