@@ -20,7 +20,7 @@ import requests.Response
 import java.io.{BufferedWriter, File, FileWriter}
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, LocalDateTime}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 object HistoricalData {
 
@@ -34,15 +34,18 @@ object HistoricalData {
   def getHistoricalData(
       exchange: String,
       ticker: String,
-      dateStart: LocalDate | String,
-      dateEnd: LocalDate | String,
+      dateStart: LocalDate,
+      dateEnd: LocalDate,
       adjust: Boolean = false
   )(using authToken: AuthenticationToken): Seq[DailyData] = {
-    val url =
-      URLs.historicalDataUrl(exchange, ticker, dateStart, dateEnd, adjust)
-    makeRequest(url).toJson
-      .as[Seq[Map[String, JsValue]]]
-      .map(parseHistoricalData(_).toDailyData)
+    if (dateStart isAfter dateEnd) Seq()
+    else {
+      val url =
+        URLs.historicalDataUrl(exchange, ticker, dateStart, dateEnd, adjust)
+      makeRequest(url).toJson
+        .as[Seq[Map[String, JsValue]]]
+        .map(parseHistoricalData(_).toDailyData)
+    }
   }
 
   private def parseHistoricalData(jsonMap: Map[String, JsValue]): Cotizacion = {
@@ -91,62 +94,51 @@ object HistoricalData {
   private def localFilepath(exchange: String, ticker: String): String =
     s"src/main/resources/market/${exchange.toUpperCase}/${ticker.toUpperCase}.csv"
 
-  private def writeHistoryData(
+  private def writeHistory(
       data: Seq[DailyData],
       exchange: String,
       ticker: String,
-      append: Boolean = true
+      append: Boolean = false
   ): Unit = {
 
-    writeAsCsv(data, localFilepath(exchange, ticker), false)
+    writeAsCsv(data, localFilepath(exchange, ticker), append)
   }
 
-  def readHistoryFromCsv[T](
+  def readHistoryFromCsv(
       exchange: String,
       ticker: String
-  ): Seq[DailyData] = {
+  ): Try[Seq[DailyData]] = {
     readFromCSV[DailyData](localFilepath(exchange, ticker))
   }
 
-  def main(args: Array[String]): Unit = {
-    given authToken: AuthenticationToken = new AuthenticationToken
+  private def fillMissingDailyData(data: Seq[DailyData]): Seq[DailyData] =
+    consecutiveMap(data).flatMap(consecutiveFillOfDates)
 
-    val bearerToken = authToken.getAccessToken
-    println(bearerToken)
-
-    val exchange = "BCBA"
-    val ticker = "GD30C"
-    val dateStart = "2021-12-15"
-    // val dateEnd = "2021-12-21"
-    val dateEnd = "2021-12-28"
-
-    val history =
-      getHistoricalData(exchange, ticker, dateStart, dateEnd, false)
-
-    println(history.sorted.mkString("\n"))
-
-    println("consecutiveMap:")
-    val consecutives = consecutiveMap(history)
-    println(
-      consecutives
-        .map { case (a, b) => (a.fechaHora, b.fechaHora) }
-        .mkString("\n")
-    )
-    println("consecutiveFill:")
-    val filled = consecutives.flatMap(consecutiveFillOfDates)
-    println(filled.map(_.toCsv).mkString("\n"))
-    println(filled.map { _.getDateTime }.mkString("\n"))
-
-    writeHistoryData(
-      consecutiveMap(history).flatMap(consecutiveFillOfDates),
-      exchange,
-      ticker,
-      false
-    )
-
-    println("READ:")
-    val read = readHistoryFromCsv("bcba", "AL30")
-    read.foreach(println)
+  def updateHistory(
+      exchange: String,
+      ticker: String,
+      dateStart: LocalDate,
+      dateEnd: LocalDate,
+      adjust: Boolean = false
+  )(using authToken: AuthenticationToken): Unit = {
+    def getData(start: LocalDate, end: LocalDate) =
+      getHistoricalData(exchange, ticker, start, end, adjust)
+    val maybeCurrentHistory = readHistoryFromCsv(exchange, ticker)
+    val newHistory =
+      if (maybeCurrentHistory.isFailure || maybeCurrentHistory.get.isEmpty)
+        getData(dateStart, dateEnd)
+      else {
+        val currentHistory = maybeCurrentHistory.get
+        val minDateTime: LocalDateTime = currentHistory.min.getDateTime
+        val maxDateTime: LocalDateTime = currentHistory.max.getDateTime
+        lazy val previousHistory =
+          getData(dateStart, minDateTime.toLocalDate.minusDays(1))
+        lazy val posteriorHistory = getData(maxDateTime.toLocalDate, dateEnd)
+        previousHistory ++ currentHistory.filter(
+          _.getDateTime.toLocalDate isBefore maxDateTime.toLocalDate
+        ) ++ posteriorHistory
+      }
+    writeHistory(fillMissingDailyData(newHistory), exchange, ticker, false)
   }
 }
 

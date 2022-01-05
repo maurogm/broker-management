@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 case class DailyData(
     fechaHora: LocalDateTime,
     currency: String,
-    closePrice: Money,
+    lastPrice: Money,
     openPrice: Money,
     maxPrice: Money,
     minPrice: Money,

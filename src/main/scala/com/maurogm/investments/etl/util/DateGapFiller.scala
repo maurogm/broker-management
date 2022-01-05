@@ -35,7 +35,10 @@ object DateGapFiller {
         Seq() // Throws away intra-day data, if any
       case (a, b) if nDaysBetween > 0 => {
         val dates =
-          for (i <- 0 until nDaysBetween.toInt) yield firstDate.plusDays(i)
+          for (i <- 0 until nDaysBetween.toInt)
+            yield
+              if i == 0 then firstDate
+              else firstDate.plusDays(i).toLocalDate.atStartOfDay
         dates.map(date => consecutiveTuple._1.setDateTime(date))
       }
       case _ =>

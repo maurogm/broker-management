@@ -48,8 +48,8 @@ object Utils {
     }
   }
 
-  def readFromCSV[T: CSVParser](filename: String): Seq[T] = {
-    readFileAsSeq(filename: String).get.map(CSVParser.fromCsv)
+  def readFromCSV[T: CSVParser](filename: String): Try[Seq[T]] = {
+    readFileAsSeq(filename: String).map(xs => xs.map(CSVParser.fromCsv))
   }
 
   def writeAsCsv[T](
