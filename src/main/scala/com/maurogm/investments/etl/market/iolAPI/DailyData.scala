@@ -1,11 +1,7 @@
 package com.maurogm.investments.etl.market.iolAPI
 
-import com.maurogm.investments.Money
-import com.maurogm.investments.etl.util.{
-  CSVParser,
-  CSVSerializer,
-  DateTimeAccessor
-}
+import com.maurogm.investments.currency.Money
+import com.maurogm.investments.etl.util.{CSVParser, CSVSerializer, DateTimeAccessor}
 
 import java.time.LocalDateTime
 

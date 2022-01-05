@@ -1,6 +1,6 @@
 package com.maurogm.investments.etl.util
 
-import com.maurogm.investments.Money
+import com.maurogm.investments.currency.Money
 import com.maurogm.investments.etl.market.iolAPI.DailyData
 
 import java.time.LocalDateTime

@@ -1,16 +1,9 @@
 package com.maurogm.investments.etl.market.iolAPI
 
-import com.maurogm.investments.Money
+import com.maurogm.investments.currency.Money
 import com.maurogm.investments.etl.market.iolAPI.URLs.makeRequest
-import com.maurogm.investments.etl.market.iolAPI.{
-  AuthenticationToken,
-  DailyData,
-  URLs
-}
-import com.maurogm.investments.etl.util.DateGapFiller.{
-  consecutiveFillOfDates,
-  consecutiveMap
-}
+import com.maurogm.investments.etl.market.iolAPI.{AuthenticationToken, DailyData, URLs}
+import com.maurogm.investments.etl.util.DateGapFiller.{consecutiveFillOfDates, consecutiveMap}
 import com.maurogm.investments.etl.util.Utils.ResponseExtensions.toJson
 import com.maurogm.investments.etl.util.Utils.{readFromCSV, writeAsCsv}
 import com.maurogm.investments.etl.util.{CSVParser, CSVSerializer}

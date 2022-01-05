@@ -1,9 +1,10 @@
 package com.maurogm.investments.etl.brokers
 
 import com.maurogm.investments
+import com.maurogm.investments.currency.Money
 import com.maurogm.investments.etl.util.Utils.StringParsingExtensions.{parseLatinNumber, remove$}
 import com.maurogm.investments.etl.util.Utils.{dateParser, dateTimeParser, isDollarBond, readFileAsSeq}
-import com.maurogm.investments.{Money, Movement, MovementType, Order}
+import com.maurogm.investments.{Movement, MovementType, Order}
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}

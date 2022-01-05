@@ -1,7 +1,7 @@
 package com.maurogm.investments.etl.brokers
 
 import com.maurogm.investments.etl.util.Utils.getListOfCSVs
-import com.maurogm.investments.{Money, Movement, Order}
+import com.maurogm.investments.{Movement, Order}
 
 import java.time.LocalDate
 //import com.maurogm.brokers.etl.*

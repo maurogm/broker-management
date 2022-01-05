@@ -1,5 +1,7 @@
 package com.maurogm.investments
 
+import com.maurogm.investments.currency.Money
+
 import java.time.LocalDateTime
 
 case class Order(

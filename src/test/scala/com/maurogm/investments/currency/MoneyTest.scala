@@ -1,5 +1,6 @@
-package com.maurogm.investments
+package com.maurogm.investments.currency
 
+import com.maurogm.investments.currency.Money
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
