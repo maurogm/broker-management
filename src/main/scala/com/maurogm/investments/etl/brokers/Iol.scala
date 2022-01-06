@@ -1,6 +1,7 @@
 package com.maurogm.investments.etl.brokers
 
 import com.maurogm.investments
+import com.maurogm.investments.Asset
 import com.maurogm.investments.currency.Money
 import com.maurogm.investments.etl.util.Utils.StringParsingExtensions.{parseLatinNumber, remove$}
 import com.maurogm.investments.etl.util.Utils.{dateParser, dateTimeParser, readFileAsSeq}
@@ -187,8 +188,7 @@ case class ParsedOrderIol(
   override def toOrder: Order = investments.Order(
     Iol.broker,
     fechaTrx,
-    exchange,
-    ticker,
+    Asset(exchange, ticker),
     parseTipo(tipo),
     cantidad,
     strToMoney(moneda, precioPonderado),

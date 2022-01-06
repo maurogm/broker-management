@@ -5,15 +5,14 @@ import com.maurogm.investments.currency.Money
 import java.time.LocalDateTime
 
 case class Order(
-    broker: String,
-    datetime: LocalDateTime,
-    exchange: String,
-    ticker: String,
-    operationType: String,
-    quantity: Double,
-    price: Money,
-    costs: Money,
-    total: Money
+                  broker: String,
+                  datetime: LocalDateTime,
+                  asset: Asset,
+                  operationType: String,
+                  quantity: Double,
+                  price: Money,
+                  costs: Money,
+                  total: Money
 )
 
 object Order {

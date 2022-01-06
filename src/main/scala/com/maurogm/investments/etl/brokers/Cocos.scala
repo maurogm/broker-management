@@ -1,6 +1,7 @@
 package com.maurogm.investments.etl.brokers
 
 import com.maurogm.investments
+import com.maurogm.investments.Asset
 import com.maurogm.investments.currency.Money
 import com.maurogm.investments.etl.util.Utils.StringParsingExtensions.{parseLatinNumber, remove$}
 import com.maurogm.investments.etl.util.Utils.{dateParser, dateTimeParser, isDollarBond, readFileAsSeq}
@@ -170,8 +171,7 @@ case class ParsedOrderCocos(
     investments.Order(
       Cocos.broker,
       datetime,
-      "BCBA",
-      ticker,
+      Asset("BCBA", ticker),
       parseCpbt(cpbt),
       cantidad,
       Money(if (isDollarBond(ticker)) "USD" else "ARS", BigDecimal(precio)),
