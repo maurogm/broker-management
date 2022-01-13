@@ -3,8 +3,15 @@ package com.maurogm.investments.etl.market.iolAPI
 import com.maurogm.investments.Asset
 import com.maurogm.investments.currency.Money
 import com.maurogm.investments.etl.market.iolAPI.URLs.makeRequest
-import com.maurogm.investments.etl.market.iolAPI.{AuthenticationToken, DailyData, URLs}
-import com.maurogm.investments.etl.util.DateGapFiller.{consecutiveFillOfDates, consecutiveMap}
+import com.maurogm.investments.etl.market.iolAPI.{
+  AuthenticationToken,
+  DailyData,
+  URLs
+}
+import com.maurogm.investments.etl.util.DateGapFiller.{
+  consecutiveFillOfDates,
+  consecutiveMap
+}
 import com.maurogm.investments.etl.util.Utils.ResponseExtensions.toJson
 import com.maurogm.investments.etl.util.Utils.{readFromCSV, writeAsCsv}
 import com.maurogm.investments.etl.util.{CSVParser, CSVSerializer}
@@ -26,15 +33,21 @@ object HistoricalData {
     *   `nASDAQ`, `aMEX`, `bCS`, `rOFX`.
     */
   def getHistoricalData(
-                         asset: Asset,
-                         dateStart: LocalDate,
-                         dateEnd: LocalDate,
-                         adjust: Boolean = false
+      asset: Asset,
+      dateStart: LocalDate,
+      dateEnd: LocalDate,
+      adjust: Boolean = false
   )(using authToken: AuthenticationToken): Seq[DailyData] = {
     if (dateStart isAfter dateEnd) Seq()
     else {
       val url =
-        URLs.historicalDataUrl(asset.exchange, asset.ticker, dateStart, dateEnd, adjust)
+        URLs.historicalDataUrl(
+          asset.exchange,
+          asset.ticker,
+          dateStart,
+          dateEnd,
+          adjust
+        )
       makeRequest(url).toJson
         .as[Seq[Map[String, JsValue]]]
         .map(parseHistoricalData(_).toDailyData)
@@ -88,32 +101,34 @@ object HistoricalData {
     s"src/main/resources/market/${asset.exchange.toUpperCase}/${asset.ticker.toUpperCase}.csv"
 
   private def writeHistory(
-                            data: Seq[DailyData],
-                            asset: Asset,
-                            append: Boolean = false
+      data: Seq[DailyData],
+      asset: Asset,
+      append: Boolean = false
   ): Unit = {
 
     writeAsCsv(data, localFilepath(asset), append)
   }
 
-  def readHistoryFromCsv(
-                          asset: Asset
-  ): Try[Seq[DailyData]] = {
-    readFromCSV[DailyData](localFilepath(asset))
+  def readHistoryFromCsv(asset: Asset): Seq[DailyData] = {
+    readFromCSV[DailyData](localFilepath(asset)) match {
+      case Success(history) => history
+      case Failure(_) =>
+        throw new NoSuchElementException(s"Could not find history for $asset")
+    }
   }
 
   private def fillMissingDailyData(data: Seq[DailyData]): Seq[DailyData] =
     consecutiveMap(data).flatMap(consecutiveFillOfDates)
 
   def updateHistory(
-                     asset: Asset,
-                     dateStart: LocalDate,
-                     dateEnd: LocalDate,
-                     adjust: Boolean = false
+      asset: Asset,
+      dateStart: LocalDate,
+      dateEnd: LocalDate,
+      adjust: Boolean = false
   )(using authToken: AuthenticationToken): Unit = {
     def getData(start: LocalDate, end: LocalDate) =
       getHistoricalData(asset, start, end, adjust)
-    val maybeCurrentHistory = readHistoryFromCsv(asset)
+    val maybeCurrentHistory = Try(readHistoryFromCsv(asset))
     val newHistory =
       if (maybeCurrentHistory.isFailure || maybeCurrentHistory.get.isEmpty)
         getData(dateStart, dateEnd)

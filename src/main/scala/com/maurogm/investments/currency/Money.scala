@@ -1,5 +1,7 @@
 package com.maurogm.investments.currency
 
+import java.time.LocalDate
+
 case class Money(currency: String, amount: BigDecimal) {
   def checkSameCurrency(that: Money): Unit = require(
     this.currency == that.currency,
@@ -25,9 +27,16 @@ case class Money(currency: String, amount: BigDecimal) {
     Money(currency, this.amount * x)
   }
 
+  /**
+   * @param exchRate is the rate of oldCurr / newCurr
+   */
   def convertTo(newCurr: String, exchRate: BigDecimal): Money = {
     require(newCurr != currency || exchRate == 1)
-    Money(newCurr, amount * exchRate)
+    Money(newCurr, amount / exchRate)
+  }
+
+  def convert(date: LocalDate)(using cc: CurrencyConverter): Money = {
+    cc.convert(this, date)
   }
 }
 

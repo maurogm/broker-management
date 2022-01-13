@@ -36,8 +36,8 @@ class MoneyTest extends AnyFreeSpec with Matchers {
 
     "when converting to another currency" - {
       "should ok" in {
-        ars.convertTo("FOO", 0.05) shouldBe Money("FOO", 5)
-        ars.convertTo("BAR", 2) shouldBe Money("BAR", 200)
+        ars.convertTo("FOO", 20) shouldBe Money("FOO", 5)
+        ars.convertTo("BAR", 0.5) shouldBe Money("BAR", 200)
       }
       "should not be allowed to convert to itself unless exchRate == 1" in {
         ars.convertTo("ARS", 1) shouldBe ars

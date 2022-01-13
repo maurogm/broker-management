@@ -6,15 +6,15 @@ import com.maurogm.investments.etl.util.{CSVParser, CSVSerializer, DateTimeAcces
 import java.time.LocalDateTime
 
 case class DailyData(
-    fechaHora: LocalDateTime,
-    currency: String,
-    lastPrice: Money,
-    openPrice: Money,
-    maxPrice: Money,
-    minPrice: Money,
-    montoOperado: Money,
-    volumenNominal: Long,
-    cantidadOperaciones: Long
+                      datetime: LocalDateTime,
+                      currency: String,
+                      lastPrice: Money,
+                      openPrice: Money,
+                      maxPrice: Money,
+                      minPrice: Money,
+                      montoOperado: Money,
+                      volumenNominal: Long,
+                      cantidadOperaciones: Long
 ) extends CSVSerializer
     with DateTimeAccessor[DailyData] {
 
@@ -23,16 +23,16 @@ case class DailyData(
     .replace(s"Money($currency,", "")
     .replace(")", "")
 
-  override def getDateTime: LocalDateTime = fechaHora
+  override def getDateTime: LocalDateTime = datetime
 
   override def setDateTime(newDateTime: LocalDateTime): DailyData =
-    this.copy(fechaHora = newDateTime)
+    this.copy(datetime = newDateTime)
 }
 
 object DailyData {
   given orderingDailyData: Ordering[DailyData] with {
     override def compare(x: DailyData, y: DailyData): Int = {
-      x.fechaHora.toString.compare(y.fechaHora.toString)
+      x.datetime.toString.compare(y.datetime.toString)
     }
   }
 

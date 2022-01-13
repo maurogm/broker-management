@@ -29,8 +29,8 @@ class AuthenticationToken {
 }
 
 object AuthenticationToken extends ConfigModule {
-  val username: String = secrets.getString("iol.username")
-  val password: String = secrets.getString("iol.password")
+  private val username: String = secrets.getString("iol.username")
+  private val password: String = secrets.getString("iol.password")
 
   def requestNewToken: Response = {
     val tokenData = Map(
