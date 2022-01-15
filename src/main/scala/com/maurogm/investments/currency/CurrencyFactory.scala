@@ -17,7 +17,8 @@ object CurrencyFactory {
   def fromAssetRatio(
       assetNum: Asset,
       assetDen: Asset,
-      newCurrencySymbol: String
+      newCurrencySymbol: String,
+      aliases: Option[Set[String]] = None
   ): CurrencyConverter = {
     val ratios = assetHistoricalRatio(assetNum, assetDen)
     val oldCurrencySymbol = getAssetCurrency(assetNum)
@@ -31,7 +32,8 @@ object CurrencyFactory {
   def fromGDR(
       gdr: GDR,
       newCurrencySymbol: String,
-      toGDRsCurrency: Boolean
+      toGDRsCurrency: Boolean,
+      aliases: Option[Set[String]] = None
   ): CurrencyConverter = {
     if (toGDRsCurrency) {
       val ratios = assetHistoricalRatio(gdr.gdr, gdr.underlying).view
@@ -44,7 +46,7 @@ object CurrencyFactory {
       )
     } else {
       val inverted = GDR(gdr.underlying, gdr.gdr, 1 / gdr.ratio)
-      fromGDR(inverted, newCurrencySymbol, true)
+      fromGDR(inverted, newCurrencySymbol, true, aliases)
     }
   }
 }
