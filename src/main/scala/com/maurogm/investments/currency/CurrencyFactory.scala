@@ -6,7 +6,6 @@ import com.maurogm.investments.etl.market.iolAPI.Utils.{
   assetHistoricalRatio,
   getAssetCurrency
 }
-import com.maurogm.investments.util.AssetsOfInterest
 import com.maurogm.investments.{Asset, GDR}
 
 import java.time.LocalDate

@@ -27,6 +27,11 @@ case class Money(currency: String, amount: BigDecimal) {
     Money(currency, this.amount * x)
   }
 
+  infix def /(that: Money): BigDecimal = {
+    checkSameCurrency(that)
+    this.amount / that.amount
+  }
+
   /**
    * @param exchRate is the rate of oldCurr / newCurr
    */

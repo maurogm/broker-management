@@ -16,6 +16,7 @@ class MoneyTest extends AnyFreeSpec with Matchers {
         assertThrows[IllegalArgumentException](ars + usd)
         assertThrows[IllegalArgumentException](ars - usd)
         assertThrows[IllegalArgumentException](ars * usd)
+        assertThrows[IllegalArgumentException](ars / usd)
       }
     }
 
@@ -31,6 +32,9 @@ class MoneyTest extends AnyFreeSpec with Matchers {
       }
       "should be multiplied correctly against a scalar" in {
         ars * 2 shouldBe Money("ARS", 200)
+      }
+      "should be divided correctly against other money" in {
+        ars / moreArs shouldBe 20
       }
     }
 

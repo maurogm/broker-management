@@ -1,22 +1,39 @@
 package com.maurogm.investments.etl.market.iolAPI
 
-import com.maurogm.investments.currency.Money
-import com.maurogm.investments.etl.util.{CSVParser, CSVSerializer, DateTimeAccessor}
+import com.maurogm.investments.currency.{CurrencyConverter, Money}
+import com.maurogm.investments.etl.util.{
+  CSVParser,
+  CSVSerializer,
+  DateTimeAccessor
+}
 
 import java.time.LocalDateTime
 
 case class DailyData(
-                      datetime: LocalDateTime,
-                      currency: String,
-                      lastPrice: Money,
-                      openPrice: Money,
-                      maxPrice: Money,
-                      minPrice: Money,
-                      montoOperado: Money,
-                      volumenNominal: Long,
-                      cantidadOperaciones: Long
+    datetime: LocalDateTime,
+    currency: String,
+    lastPrice: Money,
+    openPrice: Money,
+    maxPrice: Money,
+    minPrice: Money,
+    montoOperado: Money,
+    volumenNominal: Long,
+    cantidadOperaciones: Long
 ) extends CSVSerializer
     with DateTimeAccessor[DailyData] {
+
+  def convertMoney(using cc: CurrencyConverter): DailyData = DailyData(
+    datetime,
+    currency,
+    lastPrice.convert(datetime.toLocalDate),
+    openPrice.convert(datetime.toLocalDate),
+    maxPrice.convert(datetime.toLocalDate),
+    minPrice.convert(datetime.toLocalDate),
+    montoOperado.convert(datetime.toLocalDate),
+    volumenNominal,
+    cantidadOperaciones
+  )
+
 
   override def toCsv: String = this.toString
     .replace("DailyData(", "")
