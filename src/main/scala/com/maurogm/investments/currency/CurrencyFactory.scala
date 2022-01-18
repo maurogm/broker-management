@@ -23,7 +23,8 @@ object CurrencyFactory {
     val oldCurrencySymbol = getAssetCurrency(assetNum)
     new CurrencyConverter(
       newCurrencySymbol,
-      ratios.map { case (k, v) => (oldCurrencySymbol, k) -> v }
+      ratios.map { case (k, v) => (oldCurrencySymbol, k) -> v },
+      aliases
     )
   }
 
@@ -41,7 +42,8 @@ object CurrencyFactory {
       val oldCurrencySymbol = getAssetCurrency(gdr.gdr)
       new CurrencyConverter(
         newCurrencySymbol,
-        ratios.map { case (k, v) => (oldCurrencySymbol, k) -> v }
+        ratios.map { case (k, v) => (oldCurrencySymbol, k) -> v },
+        aliases
       )
     } else {
       val inverted = GDR(gdr.underlying, gdr.gdr, 1 / gdr.ratio)
