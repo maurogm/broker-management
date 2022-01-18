@@ -4,6 +4,7 @@ import com.maurogm.investments.currency.{CurrencyConverter, Money}
 import com.maurogm.investments.etl.util.{
   CSVParser,
   CSVSerializer,
+  CurrencyHomogenizer,
   DateTimeAccessor
 }
 
@@ -21,19 +22,6 @@ case class DailyData(
     cantidadOperaciones: Long
 ) extends CSVSerializer
     with DateTimeAccessor[DailyData] {
-
-  def convertMoney(using cc: CurrencyConverter): DailyData = DailyData(
-    datetime,
-    currency,
-    lastPrice.convert(datetime.toLocalDate),
-    openPrice.convert(datetime.toLocalDate),
-    maxPrice.convert(datetime.toLocalDate),
-    minPrice.convert(datetime.toLocalDate),
-    montoOperado.convert(datetime.toLocalDate),
-    volumenNominal,
-    cantidadOperaciones
-  )
-
 
   override def toCsv: String = this.toString
     .replace("DailyData(", "")
@@ -53,7 +41,7 @@ object DailyData {
     }
   }
 
-  given csvParserDailyData: CSVParser[DailyData] = new CSVParser[DailyData] {
+  given csvParserDailyData: CSVParser[DailyData] with {
     override def fromCsv(str: String): DailyData = {
       val tokens = str.split(",")
       val currency = tokens(1)
@@ -69,5 +57,15 @@ object DailyData {
         tokens(8).toLong
       )
     }
+  }
+
+  given currencyHomogenizerDailyData(using cc: CurrencyConverter): CurrencyHomogenizer[DailyData] with {
+    def homogenizeCurrency(x: DailyData): DailyData = x.copy(
+      lastPrice = x.lastPrice.convert(x.datetime.toLocalDate),
+      openPrice = x.openPrice.convert(x.datetime.toLocalDate),
+      maxPrice = x.maxPrice.convert(x.datetime.toLocalDate),
+      minPrice = x.minPrice.convert(x.datetime.toLocalDate),
+      montoOperado = x.montoOperado.convert(x.datetime.toLocalDate),
+    )
   }
 }
