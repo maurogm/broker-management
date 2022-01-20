@@ -174,8 +174,8 @@ case class ParsedOrderCocos(
       Asset("BCBA", ticker),
       parseCpbt(cpbt),
       cantidad,
-      Money(if (isDollarBond(ticker)) "USD" else "ARS", BigDecimal(precio)),
+      Money(parseMoney(ticker), BigDecimal(precio)),
       Money("ARS", 0),
-      Money(if (isDollarBond(ticker)) "USD" else "ARS", BigDecimal(importe))
+      Money(parseMoney(ticker), BigDecimal(importe))
     )
 }
