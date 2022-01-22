@@ -2,12 +2,13 @@ package com.maurogm.investments.etl.market.iolAPI
 
 import com.maurogm.investments.Asset
 import com.maurogm.investments.currency.Money
-import com.maurogm.investments.etl.market.iolAPI.URLs.makeRequest
-import com.maurogm.investments.etl.market.iolAPI.{
-  AuthenticationToken,
-  DailyData,
-  URLs
+import com.maurogm.investments.etl.market.AssetExtension.{
+  localFilepath,
+  readHistoryFromCsv
 }
+import com.maurogm.investments.etl.market.iolAPI.URLs.makeRequest
+import com.maurogm.investments.etl.market.iolAPI.{AuthenticationToken, URLs}
+import com.maurogm.investments.etl.market.{AssetExtension, DailyData}
 import com.maurogm.investments.etl.util.DateGapFiller.{
   consecutiveFillOfDates,
   consecutiveMap
@@ -97,24 +98,13 @@ object HistoricalData {
     )
   }
 
-  private def localFilepath(asset: Asset): String =
-    s"src/main/resources/market/${asset.exchange.toUpperCase}/${asset.ticker.toUpperCase}.csv"
-
   private def writeHistory(
       data: Seq[DailyData],
       asset: Asset,
       append: Boolean = false
   ): Unit = {
 
-    writeAsCsv(data, localFilepath(asset), append)
-  }
-
-  def readHistoryFromCsv(asset: Asset): Seq[DailyData] = {
-    readFromCSV[DailyData](localFilepath(asset)) match {
-      case Success(history) => history
-      case Failure(_) =>
-        throw new NoSuchElementException(s"Could not find history for $asset")
-    }
+    writeAsCsv(data, asset.localFilepath, append)
   }
 
   private def fillMissingDailyData(data: Seq[DailyData]): Seq[DailyData] =
