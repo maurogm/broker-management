@@ -1,7 +1,7 @@
 package com.maurogm.investments.etl.util
 
 import com.maurogm.investments.currency.CurrencyConverter
-import com.maurogm.investments.etl.market.iolAPI.DailyData
+import com.maurogm.investments.etl.market.DailyData
 
 // 1 - type class definition
 trait CurrencyHomogenizer[T](using cc: CurrencyConverter) {

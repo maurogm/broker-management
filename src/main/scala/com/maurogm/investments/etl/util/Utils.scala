@@ -1,6 +1,6 @@
 package com.maurogm.investments.etl.util
 
-import com.maurogm.investments.etl.market.iolAPI.DailyData
+import com.maurogm.investments.etl.market.DailyData
 import com.maurogm.investments.etl.util.CSVParser
 import play.api.libs.json.{JsValue, Json}
 import requests.Response
