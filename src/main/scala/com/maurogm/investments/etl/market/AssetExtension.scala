@@ -35,6 +35,16 @@ object AssetExtension {
         (x.datetime.toLocalDate, x.lastPrice.convert(x.datetime.toLocalDate))
       }.toMap
 
+    def getMostRecentPrice: Money = {
+      val closingPrices = asset.getClosingPrices
+      val lastDate = closingPrices.keys.max
+      closingPrices(lastDate)
+    }
+
+    def getMostRecentPriceHomogeneous(using cc: CurrencyConverter): Money =
+      val closingPrices = asset.getClosingPrices
+      val lastDate = closingPrices.keys.max
+      closingPrices(lastDate).convert(lastDate)
   }
 
 }

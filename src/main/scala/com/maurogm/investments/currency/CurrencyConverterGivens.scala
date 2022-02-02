@@ -50,5 +50,5 @@ object CurrencyConverterGivens {
           maxDate = LocalDate.parse("2021-11-13")
         )
     )
-    .addOrUpdate(cclGD30.trimDates(minDate = LocalDate.parse("2020-09-14")))
+    .addOrUpdate(cclGD30.trimDates(minDate = LocalDate.parse("2020-09-14")), newSymbol = Some("CCL"))
 }

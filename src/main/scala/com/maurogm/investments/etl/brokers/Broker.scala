@@ -16,15 +16,17 @@ trait Broker[A <: Broker[A]] { self: A =>
 
   def readBrokerMovementsFromLocalFile(path: String): Seq[ParsedMovement[A]]
 
-  def readOrdersFromResources: Seq[ParsedOrder[A]] = getListOfCSVs(
+  def readOrdersFromResources: Seq[Order] = getListOfCSVs(
     s"$standardResourcesPath/orders"
   ).map(file => s"$standardResourcesPath/orders/$file")
     .flatMap(readBrokerOrdersFromLocalFile)
+    .map(_.toOrder)
 
-  def readMovementsFromResources: Seq[ParsedMovement[A]] = getListOfCSVs(
+  def readMovementsFromResources: Seq[Movement] = getListOfCSVs(
     s"$standardResourcesPath/movements"
   ).map(file => s"$standardResourcesPath/movements/$file")
     .flatMap(readBrokerMovementsFromLocalFile)
+    .map(_.toMovement)
 }
 
 trait ParsedOrder[Broker] {

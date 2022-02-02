@@ -2,7 +2,13 @@ package com.maurogm.investments
 
 import com.maurogm.investments.etl.util.CSVParser
 
-case class Asset(exchange: String, ticker: String)
+import scala.util.Try
+
+case class Asset(exchange: String, ticker: String) {
+  def resolveAliases(aliasTable: Map[Asset, Asset]): Asset = {
+    Try(aliasTable(this)).getOrElse(this)
+  }
+}
 
 /** @param ratio
   *   How many stocks of the underlying asset are contained in one unit of the
