@@ -3,7 +3,7 @@ package com.maurogm.investments
 import com.maurogm.investments.currency.{CurrencyConverter, Money}
 import com.maurogm.investments.etl.brokers.Broker
 import com.maurogm.investments.etl.market.AssetExtension.{
-  getMostRecentPrice,
+  getHistoricPriceHomogeneous,
   getMostRecentPriceHomogeneous
 }
 import com.maurogm.investments.etl.market.PriceMultiplierMap
@@ -15,11 +15,24 @@ import scala.annotation.targetName
 
 type Portfolio = Map[Asset, Position]
 extension (portfolio: Portfolio) {
-  def valuation(using
+
+  /** Returns the valuation of the porfolio using the prices each asset had at
+    * closing time during the `dateOfValuation`.
+    *
+    * If no `dateOfValuation` is provided, then the most recent prices available
+    * are used.
+    */
+  def valuation(dateOfValuation: Option[LocalDate] = None)(using
       cc: CurrencyConverter,
       pmm: PriceMultiplierMap
-  ): Map[Asset, Money] = portfolio.map { case (asset, position) =>
-    asset -> asset.getMostRecentPriceHomogeneous * (pmm(asset) * position.total)
+  ): Map[Asset, Money] = portfolio.map { case (asset, position) => {
+    asset -> (dateOfValuation match {
+      case None =>
+        asset.getMostRecentPriceHomogeneous * (pmm(asset) * position.total)
+      case Some(date) =>
+        asset.getHistoricPriceHomogeneous(date) * (pmm(asset) * position.total)
+    })
+  }
   }
 }
 
@@ -70,7 +83,7 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
     Activity(this.orders ++ that.orders, this.movements ++ that.movements)
 
   def pastActivity(date: LocalDate): Activity = Activity(
-    orders.filter(_.datetime isBefore date.atStartOfDay()),
+    orders.filter(_.datetime isBefore date.atStartOfDay().plusDays(1)),
     movements.filter(_.date isBefore date)
   )
 

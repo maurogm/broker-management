@@ -11,35 +11,35 @@ object CurrencyConverterGivens {
     Asset("BCBA", "GD30"),
     Asset("BCBA", "GD30D"),
     "USD-MEP",
-    Some(Set("USD", "MEP-GD30"))
+    Some(Set("USD", "MEP-GD30", "CCL"))
   )
 
   given mepAL30: CurrencyConverter = CurrencyFactory.fromAssetRatio(
     Asset("BCBA", "AL30"),
     Asset("BCBA", "AL30D"),
     "USD-MEP",
-    Some(Set("USD", "MEP-AL30"))
+    Some(Set("USD", "MEP-AL30", "CCL"))
   )
 
   given cclGD30: CurrencyConverter = CurrencyFactory.fromAssetRatio(
     Asset("BCBA", "GD30"),
     Asset("BCBA", "GD30C"),
     "USD-CCL",
-    Some(Set("USD", "CCL-GD30"))
+    Some(Set("USD", "CCL-GD30", "CCL"))
   )
 
   given cclAL30: CurrencyConverter = CurrencyFactory.fromAssetRatio(
     Asset("BCBA", "AL30"),
     Asset("BCBA", "AL30C"),
     "USD-CCL",
-    Some(Set("USD", "CCL-AL30"))
+    Some(Set("USD", "CCL-AL30", "CCL"))
   )
 
   given cclGGAL: CurrencyConverter = CurrencyFactory.fromGDR(
     GDRReader.getByAsset(Asset("NYSE", "GGAL")),
     "USD-CCL",
     toGDRsCurrency = false,
-    Some(Set("USD", "CCL-GGAL"))
+    Some(Set("USD", "CCL-GGAL", "CCL"))
   )
 
   given customCCL: CurrencyConverter = cclGGAL
