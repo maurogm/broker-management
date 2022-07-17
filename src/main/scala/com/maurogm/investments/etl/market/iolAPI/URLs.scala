@@ -3,6 +3,7 @@ package com.maurogm.investments.etl.market.iolAPI
 import requests.Response
 
 import java.time.LocalDate
+import scala.util.Try
 
 object URLs {
   val BASE_URL = "https://api.invertironline.com"
@@ -21,10 +22,11 @@ object URLs {
 
   def makeRequest(
       url: String
-  )(using authToken: AuthenticationToken): Response = {
-    requests.get(
+  )(using authToken: AuthenticationToken): Try[Response] = {
+    lazy val response = requests.get(
       url = url,
       headers = Map("Authorization" -> s"Bearer ${authToken.getAccessToken}")
     )
+    Try(response)
   }
 }

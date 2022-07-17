@@ -38,8 +38,8 @@ object HistoricalData {
       dateStart: LocalDate,
       dateEnd: LocalDate,
       adjust: Boolean = false
-  )(using authToken: AuthenticationToken): Seq[DailyData] = {
-    if (dateStart isAfter dateEnd) Seq()
+  )(using authToken: AuthenticationToken): Try[Seq[DailyData]] = {
+    if (dateStart isAfter dateEnd) Success(Seq())
     else {
       val url =
         URLs.historicalDataUrl(
@@ -49,9 +49,10 @@ object HistoricalData {
           dateEnd,
           adjust
         )
-      makeRequest(url).toJson
+      makeRequest(url).map(response =>
+        response.toJson
         .as[Seq[Map[String, JsValue]]]
-        .map(parseHistoricalData(_).toDailyData)
+        .map(parseHistoricalData(_).toDailyData))
     }
   }
 
@@ -103,7 +104,6 @@ object HistoricalData {
       asset: Asset,
       append: Boolean = false
   ): Unit = {
-
     writeAsCsv(data, asset.localFilepath, append)
   }
 
@@ -119,21 +119,26 @@ object HistoricalData {
     def getData(start: LocalDate, end: LocalDate) =
       getHistoricalData(asset, start, end, adjust)
     val maybeCurrentHistory = Try(readHistoryFromCsv(asset))
-    val newHistory =
+    val tryNewHistory =
       if (maybeCurrentHistory.isFailure || maybeCurrentHistory.get.isEmpty)
         getData(dateStart, dateEnd)
       else {
         val currentHistory = maybeCurrentHistory.get
         val minDateTime: LocalDateTime = currentHistory.min.getDateTime
         val maxDateTime: LocalDateTime = currentHistory.max.getDateTime
-        lazy val previousHistory =
+        lazy val tryPreviousHistory =
           getData(dateStart, minDateTime.toLocalDate.minusDays(1))
-        lazy val posteriorHistory = getData(maxDateTime.toLocalDate, dateEnd)
-        previousHistory ++ currentHistory.filter(
+        lazy val tryPosteriorHistory = getData(maxDateTime.toLocalDate, dateEnd)
+        for {
+          previousHistory <- tryPreviousHistory
+          posteriorHistory <- tryPosteriorHistory
+        } yield previousHistory ++ currentHistory.filter(
           _.getDateTime.toLocalDate isBefore maxDateTime.toLocalDate
         ) ++ posteriorHistory
       }
-    writeHistory(fillMissingDailyData(newHistory), asset, false)
+    tryNewHistory match
+      case Success(newHistory) => writeHistory(fillMissingDailyData(newHistory), asset, false)
+      case Failure(ex) => println(s"[Warning] Couldn't update asset $asset. Reason: ${ex.getMessage}")
   }
 }
 
