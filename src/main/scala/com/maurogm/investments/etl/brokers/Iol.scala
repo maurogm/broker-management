@@ -110,6 +110,9 @@ case class ParsedMovementIol(
       str: String
   ): (MovementType, Option[String]) = str match {
     case s if s == "Crédito"           => (MovementType.Credit, None)
+    case s if s == "Débito - Producto" => (MovementType.Costs, None)
+    case s if s.startsWith("Transferencia de Titulos IN") => (MovementType.AssetTransferIn, None)
+    case s if s.startsWith("Transferencia de Titulos OUT") => (MovementType.AssetTransferOut, None)
     case s if s.startsWith("Depósito") => (MovementType.CashDeposit, None)
     case s if s.startsWith("Extracción") =>
       (MovementType.CashWithdrawal, None)

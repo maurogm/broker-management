@@ -30,5 +30,5 @@ object Movement {
 }
 
 enum MovementType {
-  case CashDeposit, CashWithdrawal, Dividends, Amortization, Credit, Costs
+  case CashDeposit, CashWithdrawal, Dividends, Amortization, Credit, Costs, AssetTransferIn, AssetTransferOut
 }

@@ -67,7 +67,7 @@ class Cocos extends Broker[Cocos] {
       path: String
   ): Seq[ParsedOrder[Cocos]] = {
     val lines = readFileAsSeq(path).get.filter(line =>
-      !line.startsWith("Total") & line != ";;;;;;;;;;"
+      !line.startsWith("Total") & line != ";;;;;;;;;;" & !line.startsWith("true")
     )
 
     val body = lines.drop(3)
@@ -95,6 +95,7 @@ class Cocos extends Broker[Cocos] {
     readFileAsSeq(path).get
       .drop(8)
       .filterNot(_.endsWith(";;;;")) // This removes the rows at the bottom
+      .filterNot(_.endsWith("SALDO ANTERIOR")) // This removes summary info from previous movements
       .map(_.replaceFirst(";", "")) // removes empty first column
       .map(parseSpreadsheetMovement)
       .filterNot(_.operacion.matches("(CPRA|VTAS|CPU\\$)"))
@@ -123,9 +124,11 @@ case class ParsedMovementCocos(
     operacion match {
       case s if s == "CU$S" || s == "COBR" => MovementType.CashDeposit
       case s if s == "DIV"                 => MovementType.Dividends
+      case s if s == "NOCR"                => MovementType.Dividends // I think... I'm not sure what this is
       case s if s == "RTA"                 => MovementType.Amortization
       case s if s == "PAGO"                => MovementType.CashWithdrawal
       case s if s == "DRIG"                => MovementType.Costs
+      case s if s == "DU$S" || s == "DECU" => MovementType.Costs
       case s =>
         throw new RuntimeException(s"Couldn't parse the MovementType of $s")
     }
