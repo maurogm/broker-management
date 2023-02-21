@@ -1,7 +1,7 @@
 package com.maurogm.investments
 
 import com.maurogm.investments.currency.{CurrencyConverter, Money}
-import com.maurogm.investments.etl.util.CurrencyHomogenizer
+import com.maurogm.investments.etl.util.{CSVSerializer, CurrencyHomogenizer}
 
 import java.time.LocalDate
 
@@ -11,7 +11,16 @@ case class Movement(
     movementType: MovementType,
     associatedTicker: Option[String],
     amount: Money
-)
+) extends CSVSerializer {
+  override def toCsv: String = {
+    this.toString
+      .replace("Movement(", "")
+      .replace(s"Money(", "")
+      .replace("Some(", "")
+      .replace(")", "")
+      .replace("None", "")
+  }
+}
 
 object Movement {
   given orderingOfMovement: Ordering[Movement] with {

@@ -1,7 +1,7 @@
 package com.maurogm.investments
 
 import com.maurogm.investments.currency.{CurrencyConverter, Money}
-import com.maurogm.investments.etl.util.CurrencyHomogenizer
+import com.maurogm.investments.etl.util.{CSVSerializer, CurrencyHomogenizer}
 
 import java.time.LocalDateTime
 
@@ -14,7 +14,15 @@ case class Order(
     price: Money,
     costs: Money,
     total: Money
-)
+) extends CSVSerializer {
+  override def toCsv: String = {
+    this.toString
+      .replace("Order(", "")
+      .replace(s"Money(", "")
+      .replace("Asset(", "")
+      .replace(")", "")
+  }
+}
 
 object Order {
   given orderingOfOrder: Ordering[Order] with {

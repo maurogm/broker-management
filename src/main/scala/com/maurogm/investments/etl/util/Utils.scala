@@ -59,7 +59,7 @@ object Utils {
       headers: Option[Seq[String]] = None
   ): Unit = {
     val bw = BufferedWriter(FileWriter(File(filePath), append))
-    if (headers.isDefined) bw.write(headers.mkString(",") + "\n")
+    for (h <- headers) bw.write(h.mkString(",") + "\n")
     data.map(_.toCsv + "\n").foreach(bw.write)
     bw.close()
   }

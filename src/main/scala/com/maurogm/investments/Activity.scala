@@ -8,6 +8,7 @@ import com.maurogm.investments.etl.market.AssetExtension.{
 }
 import com.maurogm.investments.etl.market.PriceMultiplierMap
 import com.maurogm.investments.etl.util.CurrencyHomogenizerSyntax.homogenizeCurrency
+import com.maurogm.investments.etl.util.Utils.writeAsCsv
 import com.maurogm.investments.util.EquivalentAssets
 
 import java.time.LocalDate
@@ -25,14 +26,16 @@ extension (portfolio: Portfolio) {
   def valuation(dateOfValuation: Option[LocalDate] = None)(using
       cc: CurrencyConverter,
       pmm: PriceMultiplierMap
-  ): Map[Asset, Money] = portfolio.map { case (asset, position) => {
-    asset -> (dateOfValuation match {
-      case None =>
-        asset.getMostRecentPriceHomogeneous * (pmm(asset) * position.total)
-      case Some(date) =>
-        asset.getHistoricPriceHomogeneous(date) * (pmm(asset) * position.total)
-    })
-  }
+  ): Map[Asset, Money] = portfolio.map {
+    case (asset, position) => {
+      asset -> (dateOfValuation match {
+        case None =>
+          asset.getMostRecentPriceHomogeneous * (pmm(asset) * position.total)
+        case Some(date) =>
+          asset
+            .getHistoricPriceHomogeneous(date) * (pmm(asset) * position.total)
+      })
+    }
   }
 }
 
@@ -92,7 +95,45 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
     .view
     .mapValues(Activity.fromOrdersToPosition)
     .toMap
+    .filterNot(
+      _._1 == Asset("BCBA", "TX22")
+    ) // TODO: Find a permanent fix for the fact that TX22 data is incomplete
 
+  def persistAsCSV(
+      filePathsRoot: String = "src/main/resources/outputs/",
+      movementsFileName: String = "unified_movements.csv",
+      ordersFileName: String = "unified_orders.csv"
+  ): Unit = {
+    writeAsCsv(
+      data = movements,
+      filePath = filePathsRoot + movementsFileName,
+      append = false,
+      headers = Some(
+        Seq("broker", "date", "movementType", "ticker", "currency", "amount")
+      )
+    )
+    writeAsCsv(
+      data = orders,
+      filePath = filePathsRoot + ordersFileName,
+      append = false,
+      headers = Some(
+        Seq(
+          "broker",
+          "datetime",
+          "exchange",
+          "ticker",
+          "operationType",
+          "quantity",
+          "price_currency",
+          "price_amount",
+          "costs_currency",
+          "costs_amount",
+          "total_currency",
+          "total_amount"
+        )
+      )
+    )
+  }
 }
 
 object Activity {
