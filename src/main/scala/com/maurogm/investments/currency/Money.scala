@@ -2,6 +2,8 @@ package com.maurogm.investments.currency
 
 import java.time.LocalDate
 
+// TODO: Reemplazar mi clase Money por https://github.com/typelevel/squants/tree/master/shared/src/main/scala/squants/market
+
 case class Money(currency: String, amount: BigDecimal) {
   def checkSameCurrency(that: Money): Unit = require(
     this.currency == that.currency,

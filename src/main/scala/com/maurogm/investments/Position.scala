@@ -61,7 +61,7 @@ case class Position(breakdown: Seq[PositionFraction]) {
           dateOpening,
           pricePayed,
           nSold,
-          price * profitRatio,
+          (price - pricePayed) * nSold,
           profitRatio,
           annualReturnRate(profitRatio - 1, dateOpening, datetime)
         )

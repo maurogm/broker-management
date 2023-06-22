@@ -5,7 +5,7 @@ import com.maurogm.investments.currency.{CurrencyConverter, Money}
 import com.maurogm.investments.etl.util.Utils.readFromCSV
 
 import java.time.LocalDate
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object AssetExtension {
 
@@ -42,7 +42,10 @@ object AssetExtension {
 
     def getHistoricPriceHomogeneous(date: LocalDate)(using cc: CurrencyConverter): Money = {
       val closingPrices = asset.getClosingPrices
-      closingPrices(date).convert(date)
+      closingPrices.get(date).map(_.convert(date)).getOrElse(throw new Exception(s"Asset $asset no tiene datos para la fecha $date"))
+      asset.getClosingPrices.get(date)
+        .map(_.convert(date))
+        .getOrElse(throw new Exception(s"$asset has no closing price for date $date"))
     }
 
     def getMostRecentPrice: Money = {

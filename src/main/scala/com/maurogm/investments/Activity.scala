@@ -30,10 +30,10 @@ extension (portfolio: Portfolio) {
     case (asset, position) => {
       asset -> (dateOfValuation match {
         case None =>
-          asset.getMostRecentPriceHomogeneous * (pmm(asset) * position.total)
+          asset.getMostRecentPriceHomogeneous * (pmm.getOrElse(asset, BigDecimal(1)) * position.total)
         case Some(date) =>
           asset
-            .getHistoricPriceHomogeneous(date) * (pmm(asset) * position.total)
+            .getHistoricPriceHomogeneous(date) * (pmm.getOrElse(asset, BigDecimal(1)) * position.total)
       })
     }
   }

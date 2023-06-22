@@ -4,6 +4,7 @@ import com.maurogm.investments.Asset
 
 trait EquivalentAssets {
   val equivalentAssetsDict = Map(
+    Asset("BCBA", "MGCBC") -> Asset("BCBA", "MGCBO"),
     Asset("BCBA", "AL29D") -> Asset("BCBA", "AL29"),
     Asset("BCBA", "AL30D") -> Asset("BCBA", "AL30"),
     Asset("BCBA", "AE38D") -> Asset("BCBA", "AE38"),

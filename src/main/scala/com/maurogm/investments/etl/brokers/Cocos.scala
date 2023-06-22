@@ -42,7 +42,7 @@ class Cocos extends Broker[Cocos] {
     val lineTokens = line.split(";")
     val moneda = if (lineTokens.length == 11) "USD" else "ARS"
     val tokens =
-      if (lineTokens(0) == "DOLAR MEP") lineTokens.tail else lineTokens
+      if (lineTokens(0) == "DOLAR MEP" | lineTokens(0) == "USD CABLE") lineTokens.tail else lineTokens
 
     def parseOptions(str: String) = if (str == "") None else Some(str)
 
@@ -76,7 +76,8 @@ class Cocos extends Broker[Cocos] {
     body
       .drop(1) // drop first ticker from body
       .withFilter(
-        _ != ";Cpbt.;Número;Cantidad;Precio;Importe;Fecha;Hora;Plazo;Vto.;Estado"
+        !_.startsWith(";Cpbt")
+        //_ != ";Cpbt.;Número;Cantidad;Precio;Importe;Fecha;Hora;Plazo;Vto.;Estado"
       )
       .map(line => if line.endsWith(";;;;;;;;;;") then "TICKER-LINE" else line)
       .mkString("\n")
@@ -123,11 +124,14 @@ case class ParsedMovementCocos(
   private def parseTipoMovimiento(operacion: String): MovementType =
     operacion match {
       case s if s == "CU$S" || s == "COBR" => MovementType.CashDeposit
+      case s if s == "CPRC"                => MovementType.CashConversion
       case s if s == "DIV"                 => MovementType.Dividends
       case s if s == "NOCR"                => MovementType.Dividends // I think... I'm not sure what this is
+      case s if s == "CU$V"                => MovementType.Dividends // I think... I'm not sure what this is
       case s if s == "RTA"                 => MovementType.Amortization
       case s if s == "PAGO"                => MovementType.CashWithdrawal
-      case s if s == "DRIG"                => MovementType.Costs
+      case s if s == "NCCO" || s == "DRIG" => MovementType.Costs
+      case s if s == "NDGI"                => MovementType.Costs
       case s if s == "DU$S" || s == "DECU" => MovementType.Costs
       case s =>
         throw new RuntimeException(s"Couldn't parse the MovementType of $s")
@@ -162,7 +166,7 @@ case class ParsedOrderCocos(
 ) extends ParsedOrder[Cocos] {
 
   private def parseCpbt(s: String) = {
-    if (s == "CPRA" || s == "CPU$") "buy"
+    if (s == "CPRA" || s == "CPU$" || s == "CPRC") "buy"
     else if (s == "VTAS") "sell"
     else throw new RuntimeException(s"Couldn't parse the operationType of $s")
   }
