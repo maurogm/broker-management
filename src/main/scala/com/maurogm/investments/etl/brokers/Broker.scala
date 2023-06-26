@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 
 trait Broker[A <: Broker[A]] { self: A =>
   def broker: String
-  val standardResourcesPath = s"src/main/resources/${broker.toLowerCase}"
+  val standardResourcesPath = s"src/main/resources/brokers/${broker.toLowerCase}"
 
   def readBrokerOrdersFromLocalFile(path: String): Seq[ParsedOrder[A]]
 

@@ -17,6 +17,7 @@ object Utils {
       def dropPoint: String = str.replace(".", "")
       def replaceDecimal: String = str.replace(",", ".")
       def remove$ : String = str.replace("$", "")
+      def removeQuotations : String = str.replace("\"", "")
       def parseLatinNumber: String = str.dropPoint.replaceDecimal
     }
   }
