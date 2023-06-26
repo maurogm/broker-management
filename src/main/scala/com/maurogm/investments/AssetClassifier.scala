@@ -11,7 +11,7 @@ trait AssetClassifier {
 
 class AssetClassifierFromMap(table: Map[Asset, AssetCategory])
     extends AssetClassifier {
-  override def getCategory(asset: Asset): AssetCategory = table(asset)
+  override def getCategory(asset: Asset): AssetCategory = table.getOrElse(asset, "UNKNOWN")
 }
 
 /** Since it is common to have maps with assets as keys, this TypeClass is

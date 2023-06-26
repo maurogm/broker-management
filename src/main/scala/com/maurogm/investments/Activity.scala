@@ -26,15 +26,14 @@ extension (portfolio: Portfolio) {
   def valuation(dateOfValuation: Option[LocalDate] = None)(using
       cc: CurrencyConverter,
       pmm: PriceMultiplierMap
-  ): Map[Asset, Money] = portfolio.map {
+  ): Map[Asset, Either[String, Money]] = portfolio.map {
     case (asset, position) => {
-      asset -> (dateOfValuation match {
-        case None =>
-          asset.getMostRecentPriceHomogeneous * (pmm.getOrElse(asset, BigDecimal(1)) * position.total)
-        case Some(date) =>
-          asset
-            .getHistoricPriceHomogeneous(date) * (pmm.getOrElse(asset, BigDecimal(1)) * position.total)
-      })
+      val maybePrice = dateOfValuation match {
+        case None => asset.getMostRecentPriceHomogeneous
+        case Some(date) => asset.getHistoricPriceHomogeneous(date)
+      }
+      val maybeTotalValuation = maybePrice.map(_ * (pmm.getOrElse(asset, BigDecimal(1)) * position.total))
+      asset -> maybeTotalValuation
     }
   }
 }

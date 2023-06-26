@@ -48,6 +48,7 @@ case class Money(currency: String, amount: BigDecimal) {
 }
 
 object Money {
+  def zero(currency:String): Money = Money(currency, BigDecimal(0))
   given orderingOfMoney: Ordering[Money] with {
     override def compare(x: Money, y: Money): Int = {
       x.checkSameCurrency(y)

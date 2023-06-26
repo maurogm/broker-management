@@ -118,12 +118,12 @@ object HistoricalData {
   )(using authToken: AuthenticationToken): Unit = {
     def getData(start: LocalDate, end: LocalDate) =
       getHistoricalData(asset, start, end, adjust)
-    val maybeCurrentHistory = Try(readHistoryFromCsv(asset))
+    val maybeCurrentHistory = readHistoryFromCsv(asset)
     val tryNewHistory =
-      if (maybeCurrentHistory.isFailure || maybeCurrentHistory.get.isEmpty)
+      if (maybeCurrentHistory.isLeft || maybeCurrentHistory.getOrElse(List.empty).isEmpty)
         getData(dateStart, dateEnd)
       else {
-        val currentHistory = maybeCurrentHistory.get
+        val currentHistory = maybeCurrentHistory.getOrElse(List.empty)
         val minDateTime: LocalDateTime = currentHistory.min.getDateTime
         val maxDateTime: LocalDateTime = currentHistory.max.getDateTime
         lazy val tryPreviousHistory =

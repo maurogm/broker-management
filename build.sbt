@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.1.0"
+ThisBuild / scalaVersion := "3.3.0"
 
 lazy val root = (project in file("."))
   .settings(
@@ -13,6 +13,11 @@ lazy val root = (project in file("."))
       "com.typesafe" % "config" % "1.4.0",
       "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
       "com.typesafe.play" %% "play-json" % "2.10.0-RC5",
+      "org.typelevel" %% "cats-core" % "2.9.0",
       "com.lihaoyi" %% "requests" % "0.7.0"
     )
   )
+
+//scalacOptions ++= Seq(
+//  "-language:higherKinds"
+//)

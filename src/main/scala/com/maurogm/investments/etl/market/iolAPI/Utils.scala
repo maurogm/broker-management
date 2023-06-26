@@ -11,12 +11,12 @@ object Utils {
   def assetHistoricalRatio(
       assetNum: Asset,
       assetDen: Asset
-  ): Map[LocalDate, BigDecimal] = {
-    val mapNum = assetNum.getClosingPrices
-    val mapDen = assetDen.getClosingPrices
-    val commonDates: Set[LocalDate] = mapNum.keySet.intersect(mapDen.keySet)
-
-    commonDates.map(k => k -> mapNum(k).amount / mapDen(k).amount).toMap
+  ): Either[String, Map[LocalDate, BigDecimal]] = {
+    for {
+      mapNum <- assetNum.getClosingPrices
+      mapDen <- assetDen.getClosingPrices
+      commonDates = mapNum.keySet.intersect(mapDen.keySet)
+    } yield commonDates.map(k => k -> mapNum(k).amount / mapDen(k).amount).toMap
   }
 
 }
