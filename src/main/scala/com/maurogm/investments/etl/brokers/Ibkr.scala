@@ -55,7 +55,6 @@ class Ibkr extends Broker[Ibkr] {
                                               path: String
                                             ): Seq[ParsedOrderIbkr] = {
     val lines: Seq[String] = readFileAsSeq(path).get
-    lines.tail.foreach(println)
     lines
       .tail
       .map(parseSpreadsheetOrder)
