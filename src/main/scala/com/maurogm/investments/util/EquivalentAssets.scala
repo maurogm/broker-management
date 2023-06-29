@@ -27,6 +27,7 @@ trait EquivalentAssets {
     Asset("BCBA", "GD38C") -> Asset("BCBA", "GD38"),
     Asset("BCBA", "GD46C") -> Asset("BCBA", "GD46"),
     Asset("BCBA", "GD35C") -> Asset("BCBA", "GD35"),
-    Asset("BCBA", "GD41C") -> Asset("BCBA", "GD41")
+    Asset("BCBA", "GD41C") -> Asset("BCBA", "GD41"),
+    Asset("BCBA", "BONO REP. ARGENTINA USD STEP UP 2030") -> Asset("BCBA", "GD30"),
   )
 }

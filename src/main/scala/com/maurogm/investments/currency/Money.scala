@@ -45,6 +45,8 @@ case class Money(currency: String, amount: BigDecimal) {
   def convert(date: LocalDate)(using cc: CurrencyConverter): Money = {
     cc.convert(this, date)
   }
+
+  override def toString: String = s"${(this.amount.toDouble * 100).round.toDouble / 100} ${this.currency}"
 }
 
 object Money {

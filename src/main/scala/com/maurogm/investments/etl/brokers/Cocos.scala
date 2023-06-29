@@ -39,7 +39,7 @@ class Cocos extends Broker[Cocos] {
   }
 
   def parseSpreadsheetMovement(line: String): ParsedMovementCocos = {
-    val lineTokens = line.split(";")
+    val lineTokens = line.split(";", -1)
     val moneda = if (lineTokens.length == 11) "USD" else "ARS"
     val tokens =
       if (lineTokens(0) == "DOLAR MEP" | lineTokens(0) == "USD CABLE") lineTokens.tail else lineTokens

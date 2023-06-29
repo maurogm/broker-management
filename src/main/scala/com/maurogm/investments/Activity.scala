@@ -36,6 +36,15 @@ extension (portfolio: Portfolio) {
       asset -> maybeTotalValuation
     }
   }
+
+  def totalPortfolioValue(dateOfValuation: Option[LocalDate] = None)(using
+                                                                     cc: CurrencyConverter,
+                                                                     pmm: PriceMultiplierMap
+  ): Money = valuation(dateOfValuation)
+    .view
+    .mapValues(x => x.getOrElse(Money.zero("CCL")))
+    .values
+    .reduce(_ + _)
 }
 
 trait ActivityInterface {
@@ -89,14 +98,32 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
     movements.filter(_.date isBefore date)
   )
 
+  lazy val brokers: Set[String] = movements.map(_.broker).toSet ++ orders.map(_.broker).toSet
+
+  def netCashMovements: Money = movements.sorted.foldLeft(Money.zero("CCL"))(_ + _.amount)
+
+  def buysTotal: Money = orders.filter(_.operationType == "buy").foldLeft(Money.zero("CCL"))(_ + _.total)
+
+  def sellsTotal: Money = orders.filter(_.operationType == "sell").foldLeft(Money.zero("CCL"))(_ + _.total)
+  
+  def cashApproximation: Money = netCashMovements - buysTotal + sellsTotal
+
+  def getActivityByBroker: Map[String, Activity] = {
+    val keyValueSet: Set[(String, Activity)] = for {
+      broker <- brokers
+      brokerMovements = movements.filter(_.broker == broker)
+      brokerOrders = orders.filter(_.broker == broker)
+      brokerActivity = new Activity(brokerOrders, brokerMovements)
+    } yield broker -> brokerActivity
+    keyValueSet.toMap
+  }
+
+
   def currentPortfolio: Portfolio = orders
     .groupBy(_.asset)
     .view
     .mapValues(Activity.fromOrdersToPosition)
     .toMap
-    .filterNot(
-      _._1 == Asset("BCBA", "TX22")
-    ) // TODO: Find a permanent fix for the fact that TX22 data is incomplete
 
   def persistAsCSV(
       filePathsRoot: String = "src/main/resources/outputs/",

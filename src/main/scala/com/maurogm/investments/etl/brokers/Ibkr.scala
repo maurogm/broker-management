@@ -124,10 +124,10 @@ case class ParsedOrderIbkr(
                          ) extends ParsedOrder[Ibkr] {
   private val parsedCurrency: String = parseCurrency(iBCommissionCurrency)
 
-  private def parseBuyOrSell(s: String): String = {
-    if (s == "BUY") "buy"
-    else if (s == "SELL") "sell"
-    else throw new RuntimeException(s"Couldn't parse the operationType of $s")
+  private val parsedBuyOrSell = buyOrSell match {
+    case s if s == "BUY" => "buy"
+    case s if s == "SELL" => "sell"
+    case s => throw new RuntimeException(s"Couldn't parse the operationType of $s")
   }
 
   private def parseCurrency(s: String): String = {
@@ -139,14 +139,16 @@ case class ParsedOrderIbkr(
     if (str == "LSEETF") "LON"
     else throw new RuntimeException(s"Couldn't parse the exchange '$str''")
 
+  private val unsignedNetCash = if (parsedBuyOrSell == "buy") -netCash else netCash
+
   override def toOrder: Order = investments.Order(
     Ibkr.broker,
     dateTime,
     Asset(parseExchange(exchange), symbol),
-    parseBuyOrSell(buyOrSell),
+    parsedBuyOrSell,
     quantity,
     Money(parsedCurrency, tradePrice),
     Money(parsedCurrency, taxes + iBCommission),
-    Money(parsedCurrency, netCash)
+    Money(parsedCurrency, unsignedNetCash)
   )
 }

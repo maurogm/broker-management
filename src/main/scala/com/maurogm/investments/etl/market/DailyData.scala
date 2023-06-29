@@ -12,9 +12,9 @@ case class DailyData(
     openPrice: Money,
     maxPrice: Money,
     minPrice: Money,
-    montoOperado: Money,
+    montoOperado: Option[Money],
     volumenNominal: Long,
-    cantidadOperaciones: Long
+    cantidadOperaciones: Option[Long]
 ) extends CSVSerializer
     with DateTimeAccessor[DailyData] {
 
@@ -38,8 +38,9 @@ object DailyData {
 
   given csvParserDailyData: CSVParser[DailyData] with {
     override def fromCsv(str: String): DailyData = {
-      val tokens = str.split(",")
+      val tokens = str.split(",", -1)
       val currency = tokens(1)
+      def validateString(str: String): Option[String] = if (str.isEmpty) Option.empty else Option(str)
       DailyData(
         LocalDateTime.parse(tokens(0)),
         currency,
@@ -47,9 +48,9 @@ object DailyData {
         Money(currency, BigDecimal(tokens(3))),
         Money(currency, BigDecimal(tokens(4))),
         Money(currency, BigDecimal(tokens(5))),
-        Money(currency, BigDecimal(tokens(6))),
+        validateString(tokens(6)).map(str => Money(currency, BigDecimal(str))),
         tokens(7).toLong,
-        tokens(8).toLong
+        validateString(tokens(8)).map(_.toLong)
       )
     }
   }
@@ -60,7 +61,7 @@ object DailyData {
       openPrice = x.openPrice.convert(x.datetime.toLocalDate),
       maxPrice = x.maxPrice.convert(x.datetime.toLocalDate),
       minPrice = x.minPrice.convert(x.datetime.toLocalDate),
-      montoOperado = x.montoOperado.convert(x.datetime.toLocalDate),
+      montoOperado = x.montoOperado.map(_.convert(x.datetime.toLocalDate)),
     )
   }
 }

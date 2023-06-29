@@ -173,8 +173,8 @@ case class Cotizacion(
     apertura,
     maximo,
     minimo,
-    montoOperado,
+    Option(montoOperado),
     volumenNominal,
-    cantidadOperaciones
+    Option(cantidadOperaciones)
   )
 }

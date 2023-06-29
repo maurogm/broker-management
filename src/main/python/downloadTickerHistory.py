@@ -36,8 +36,8 @@ downloaded_data = yf.Ticker(TICKER).history(period="max").reset_index()
 colunmn_names = ["Date", "currency", "Close", "Open", "High", "Low", "operated_amount", "Volume", "n_operations"]
 data_adjusted = (downloaded_data
                  .assign(currency="USD")
-                 .assign(operated_amount = 0)
-                 .assign(n_operations = 0)
+                 .assign(operated_amount = "")
+                 .assign(n_operations = "")
                  .assign(Date = downloaded_data['Date'].dt.strftime('%Y-%m-%dT%H:%M:%S'))
                  )[
     colunmn_names
