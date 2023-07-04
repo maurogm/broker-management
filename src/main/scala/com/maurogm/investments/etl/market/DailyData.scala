@@ -21,6 +21,8 @@ case class DailyData(
   override def toCsv: String = this.toString
     .replace("DailyData(", "")
     .replace(s"Money($currency,", "")
+    .replace("Some(", "")
+    .replace("None", "")
     .replace(")", "")
 
   override def getDateTime: LocalDateTime = datetime
