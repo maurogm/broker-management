@@ -21,6 +21,7 @@ case class DailyData(
   override def toCsv: String = this.toString
     .replace("DailyData(", "")
     .replace(s"Money($currency,", "")
+    .replace(s" $currency", "")
     .replace("Some(", "")
     .replace("None", "")
     .replace(")", "")
