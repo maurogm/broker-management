@@ -43,7 +43,7 @@ object CurrencyFactory {
         oldCurrencySymbol <- gdr.gdr.getAssetCurrency
       } yield new CurrencyConverter(
         newCurrencySymbol,
-        ratios.map { case (k, v) => (oldCurrencySymbol, k) -> v },
+        mappedRatios.map { case (k, v) => (oldCurrencySymbol, k) -> v },
         aliases
       )
       resolveErrorEither(maybeCC)
