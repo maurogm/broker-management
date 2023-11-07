@@ -89,6 +89,7 @@ case class ParsedMovementBalanz(descripcion: String,
     case s if s.startsWith("Comprobante de Pago") => (MovementType.CashWithdrawal, None)
     case s if s.startsWith("Cargo por Descubierto") => (MovementType.Costs, None)
     case s if s.startsWith("Boleto") => (MovementType.Operation, ticker)
+    case s if s.startsWith("Renta") => (MovementType.Interests, ticker)
     case s =>
       throw new RuntimeException(s"Couldn't parse the MovementType of $s")
   }
@@ -96,6 +97,7 @@ case class ParsedMovementBalanz(descripcion: String,
   private def parseCurrency(moneda: String) = {
     if (moneda == "Pesos") "ARS"
     else if (moneda.startsWith("US Dollar")) "USD"
+    else if (moneda.startsWith("Dólares")) "USD"
     else
       throw new RuntimeException(
         s"Couldn't parse the currency from tipoCuenta='$moneda'"

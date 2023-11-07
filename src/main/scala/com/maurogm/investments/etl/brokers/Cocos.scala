@@ -133,6 +133,7 @@ case class ParsedMovementCocos(
       case s if s == "NCCO" || s == "DRIG" => MovementType.Costs
       case s if s == "NDGI"                => MovementType.Costs
       case s if s == "DU$S" || s == "DECU" => MovementType.Costs
+      case s if s == "CAEX"                => MovementType.Unknown
       case s =>
         throw new RuntimeException(s"Couldn't parse the MovementType of $s")
     }

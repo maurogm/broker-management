@@ -116,6 +116,10 @@ case class ParsedMovementIol(
     case s if s.startsWith("Depósito") => (MovementType.CashDeposit, None)
     case s if s.startsWith("Extracción") =>
       (MovementType.CashWithdrawal, None)
+    case s if s.startsWith("Pago de Amortización") =>
+      val regex = "Pago de Amortización\\((\\w+).*".r
+      val regex(ticker) = str
+      (MovementType.Amortization, Some(ticker))
     case s if s.startsWith("Pago de") =>
       val regex = "Pago de (\\w+)\\((\\w+).*".r
       val regex(kind, ticker) = str
