@@ -2,18 +2,13 @@ package com.maurogm.investments
 
 import com.maurogm.investments.currency.{CurrencyConverter, Money}
 import com.maurogm.investments.etl.brokers.Broker
-import com.maurogm.investments.etl.market.AssetExtension.{
-  getHistoricPrice,
-  getHistoricPriceHomogeneous,
-  getMostRecentPrice,
-  getMostRecentPriceHomogeneous
-}
+import com.maurogm.investments.etl.market.AssetExtension.{getHistoricPrice, getHistoricPriceHomogeneous, getMostRecentPrice, getMostRecentPriceHomogeneous}
 import com.maurogm.investments.etl.market.PriceMultiplierMap
 import com.maurogm.investments.etl.util.CurrencyHomogenizerSyntax.homogenizeCurrency
 import com.maurogm.investments.etl.util.Utils.writeAsCsv
 import com.maurogm.investments.util.EquivalentAssets
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import scala.annotation.targetName
 
 type Portfolio = Map[Asset, Position]
@@ -35,6 +30,7 @@ extension (portfolio: Portfolio) {
         case None if !convertCurrency => asset.getMostRecentPrice
         case Some(date) if  convertCurrency => asset.getHistoricPriceHomogeneous(date)
         case Some(date) if !convertCurrency => asset.getHistoricPrice(date)
+        case _ => throw new RuntimeException("Reached end of pattern matching without matching any case")
       }
       val maybeTotalValuation = maybePrice.map(_ * (pmm.getOrElse(asset, BigDecimal(1)) * position.total))
       asset -> maybeTotalValuation
@@ -132,7 +128,8 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
   def persistAsCSV(
       filePathsRoot: String = "src/main/resources/outputs/",
       movementsFileName: String = "unified_movements.csv",
-      ordersFileName: String = "unified_orders.csv"
+      ordersFileName: String = "unified_orders.csv",
+      positionFileName: String = "current_position.csv",
   ): Unit = {
     writeAsCsv(
       data = movements,
@@ -163,6 +160,29 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
         )
       )
     )
+
+    val unzippedPositionFractions: Iterable[UnzippedPositionFraction] = for {
+        (asset, position) <- currentPortfolio
+        posFraction <- position.breakdown
+        PositionFraction(datetimeOpening, pricePayed, remainingQuantity) = posFraction
+      } yield UnzippedPositionFraction(asset, datetimeOpening, pricePayed, remainingQuantity)
+
+    writeAsCsv(
+      data = unzippedPositionFractions.toSeq,
+      filePath = filePathsRoot + positionFileName,
+      append = false,
+      headers = Some(
+        Seq(
+          "exchange",
+            "ticker",
+            "datetimeOpening",
+            "currency",
+            "pricePayedAmount",
+            "remainingQuantity",
+        )
+      )
+    )
+
   }
 }
 
