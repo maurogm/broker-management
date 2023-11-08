@@ -52,5 +52,8 @@ object AssetExtension {
       lastDate = closingPrices.keys.max
   } yield closingPrices(lastDate).convert(lastDate)
 
+    def getMostRecentDateWithPrice: Either[String, LocalDate] = for {
+      closingPrices <- getClosingPrices
+    } yield closingPrices.keys.max
   }
 }

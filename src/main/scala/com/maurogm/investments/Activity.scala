@@ -2,8 +2,9 @@ package com.maurogm.investments
 
 import com.maurogm.investments.currency.{CurrencyConverter, Money}
 import com.maurogm.investments.etl.brokers.Broker
-import com.maurogm.investments.etl.market.AssetExtension.{getHistoricPrice, getHistoricPriceHomogeneous, getMostRecentPrice, getMostRecentPriceHomogeneous}
+import com.maurogm.investments.etl.market.AssetExtension.*
 import com.maurogm.investments.etl.market.PriceMultiplierMap
+import com.maurogm.investments.etl.util.CSVSerializer
 import com.maurogm.investments.etl.util.CurrencyHomogenizerSyntax.homogenizeCurrency
 import com.maurogm.investments.etl.util.Utils.writeAsCsv
 import com.maurogm.investments.util.EquivalentAssets
@@ -108,6 +109,8 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
 
   def cashApproximation: Money = netCashMovements - buysTotal + sellsTotal
 
+  def getTradedAssets: Set[Asset] = orders.map(_.asset).toSet
+
   def getActivityByBroker: Map[String, Activity] = {
     val keyValueSet: Set[(String, Activity)] = for {
       broker <- brokers
@@ -117,7 +120,6 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
     } yield broker -> brokerActivity
     keyValueSet.toMap
   }
-
 
   def currentPortfolio: Portfolio = orders
     .groupBy(_.asset)
@@ -130,6 +132,7 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
       movementsFileName: String = "unified_movements.csv",
       ordersFileName: String = "unified_orders.csv",
       positionFileName: String = "current_position.csv",
+      recentPricesFileName: String = "recent_prices.csv",
   ): Unit = {
     writeAsCsv(
       data = movements,
@@ -166,7 +169,6 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
         posFraction <- position.breakdown
         PositionFraction(datetimeOpening, pricePayed, remainingQuantity) = posFraction
       } yield UnzippedPositionFraction(asset, datetimeOpening, pricePayed, remainingQuantity)
-
     writeAsCsv(
       data = unzippedPositionFractions.toSeq,
       filePath = filePathsRoot + positionFileName,
@@ -183,6 +185,24 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
       )
     )
 
+    val assetsRecentPrices = getTradedAssets
+      .map(asset => AssetPrice(asset, asset.getMostRecentDateWithPrice, asset.getMostRecentPrice, asset.getMostRecentPriceHomogeneous))
+    writeAsCsv(
+      data = assetsRecentPrices.toSeq,
+      filePath = filePathsRoot + recentPricesFileName,
+      append = false,
+      headers = Some(
+        Seq(
+          "exchange",
+          "ticker",
+          "date",
+          "localCurrency",
+          "priceLocalCurrency",
+          "homogeneousCurrency",
+          "priceHomogeneousCurrency",
+        )
+      )
+    )
   }
 }
 
@@ -206,5 +226,24 @@ object Activity {
             "Trying to build a Position from an order that is neither buy nor sell"
           )
       }
+  }
+}
+
+case class AssetPrice(
+                            asset: Asset,
+                            maybeDate: Either[String, LocalDate],
+                            maybePriceOriginal: Either[String, Money],
+                            maybePriceHomogeneous: Either[String, Money]
+                          ) extends CSVSerializer {
+  override def toCsv: String = {
+    val dateStr: String = maybeDate match
+      case Left(_) => ""
+      case Right(date) => date.toString
+    def maybePriceToStr(maybePrice: Either[String, Money]): String = maybePrice match
+      case Left(_) => ""
+      case Right(Money(currency, amount)) => s"$currency,$amount"
+    val priceStrOriginal = maybePriceToStr(maybePriceOriginal)
+    val priceStrHomogeneous = maybePriceToStr(maybePriceHomogeneous)
+    s"${asset.exchange},${asset.ticker},$dateStr,$priceStrOriginal,$priceStrHomogeneous"
   }
 }
