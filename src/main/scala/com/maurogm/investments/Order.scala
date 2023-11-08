@@ -16,7 +16,7 @@ case class Order(
     total: Money
 ) extends CSVSerializer {
   override def toCsv: String = {
-    this.toString
+    s"${this.broker},${this.datetime},${this.asset},${this.operationType},${this.quantity},${this.price.currency},${this.price.amount},${this.costs.currency},${this.costs.amount},${this.total.currency},${this.total.amount}"
       .replace("Order(", "")
       .replace(s"Money(", "")
       .replace("Asset(", "")

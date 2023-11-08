@@ -12,14 +12,12 @@ case class Movement(
     associatedTicker: Option[String],
     amount: Money
 ) extends CSVSerializer {
-  override def toCsv: String = {
-    this.toString
+  override def toCsv: String =
+    s"${this.broker},${this.date},${this.movementType},${this.associatedTicker},${this.amount.currency},${this.amount.amount}"
       .replace("Movement(", "")
-      .replace(s"Money(", "")
       .replace("Some(", "")
       .replace(")", "")
       .replace("None", "")
-  }
 }
 
 object Movement {
