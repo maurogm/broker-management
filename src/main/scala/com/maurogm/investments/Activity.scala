@@ -3,7 +3,9 @@ package com.maurogm.investments
 import com.maurogm.investments.currency.{CurrencyConverter, Money}
 import com.maurogm.investments.etl.brokers.Broker
 import com.maurogm.investments.etl.market.AssetExtension.{
+  getHistoricPrice,
   getHistoricPriceHomogeneous,
+  getMostRecentPrice,
   getMostRecentPriceHomogeneous
 }
 import com.maurogm.investments.etl.market.PriceMultiplierMap
@@ -23,14 +25,16 @@ extension (portfolio: Portfolio) {
     * If no `dateOfValuation` is provided, then the most recent prices available
     * are used.
     */
-  def valuation(dateOfValuation: Option[LocalDate] = None)(using
+  def valuation(dateOfValuation: Option[LocalDate] = None, convertCurrency: Boolean = true)(using
       cc: CurrencyConverter,
       pmm: PriceMultiplierMap
   ): Map[Asset, Either[String, Money]] = portfolio.map {
     case (asset, position) => {
       val maybePrice = dateOfValuation match {
-        case None => asset.getMostRecentPriceHomogeneous
-        case Some(date) => asset.getHistoricPriceHomogeneous(date)
+        case None if  convertCurrency => asset.getMostRecentPriceHomogeneous
+        case None if !convertCurrency => asset.getMostRecentPrice
+        case Some(date) if  convertCurrency => asset.getHistoricPriceHomogeneous(date)
+        case Some(date) if !convertCurrency => asset.getHistoricPrice(date)
       }
       val maybeTotalValuation = maybePrice.map(_ * (pmm.getOrElse(asset, BigDecimal(1)) * position.total))
       asset -> maybeTotalValuation
@@ -105,7 +109,7 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
   def buysTotal: Money = orders.filter(_.operationType == "buy").foldLeft(Money.zero("CCL"))(_ + _.total)
 
   def sellsTotal: Money = orders.filter(_.operationType == "sell").foldLeft(Money.zero("CCL"))(_ + _.total)
-  
+
   def cashApproximation: Money = netCashMovements - buysTotal + sellsTotal
 
   def getActivityByBroker: Map[String, Activity] = {
@@ -163,17 +167,24 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
 }
 
 object Activity {
-  def fromOrdersToPosition(xs: Seq[Order]): Position = {
+
+  def fromOrdersToPosition(xs: Seq[Order]): Position = fromOrdersToPositionAndSaleResults(xs)._1
+
+  def fromOrdersToSaleResults(xs: Seq[Order]): Iterable[SaleResult] = fromOrdersToPositionAndSaleResults(xs)._2
+
+  def fromOrdersToPositionAndSaleResults(xs: Seq[Order]): (Position, Iterable[SaleResult]) = {
     xs.sorted
-      .foldLeft[Position](Position(Nil))((pos, ord) =>
+      .foldLeft[(Position, Iterable[SaleResult])]((Position(Nil), Iterable.empty)) {case ((pos, saleResults), ord) =>
         if (ord.operationType == "buy") {
-          pos.buy(ord.quantity.toInt, ord.price, ord.datetime)
+          val newPos = pos.buy(ord.quantity.toInt, ord.price, ord.datetime)
+          (newPos, saleResults)
         } else if (ord.operationType == "sell") {
-          pos.sell(ord.quantity.toInt, ord.price, ord.datetime)._1
+          val (newPos, newSales): (Position, Iterable[SaleResult]) = pos.sell(ord.quantity.toInt, ord.price, ord.datetime)
+          (newPos, newSales ++ saleResults)
         } else
           throw new IllegalArgumentException(
             "Trying to build a Position from an order that is neither buy nor sell"
           )
-      )
+      }
   }
 }
