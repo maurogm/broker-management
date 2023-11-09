@@ -127,83 +127,6 @@ class Activity(orderSeq: Seq[Order], movementSeq: Seq[Movement])(using
     .mapValues(Activity.fromOrdersToPosition)
     .toMap
 
-  def persistAsCSV(
-      filePathsRoot: String = "src/main/resources/outputs/",
-      movementsFileName: String = "unified_movements.csv",
-      ordersFileName: String = "unified_orders.csv",
-      positionFileName: String = "current_position.csv",
-      recentPricesFileName: String = "recent_prices.csv",
-  ): Unit = {
-    writeAsCsv(
-      data = movements,
-      filePath = filePathsRoot + movementsFileName,
-      append = false,
-      headers = Some(
-        Seq("broker", "date", "movementType", "ticker", "currency", "amount")
-      )
-    )
-    writeAsCsv(
-      data = orders,
-      filePath = filePathsRoot + ordersFileName,
-      append = false,
-      headers = Some(
-        Seq(
-          "broker",
-          "datetime",
-          "exchange",
-          "ticker",
-          "operationType",
-          "quantity",
-          "price_currency",
-          "price_amount",
-          "costs_currency",
-          "costs_amount",
-          "total_currency",
-          "total_amount"
-        )
-      )
-    )
-
-    val unzippedPositionFractions: Iterable[UnzippedPositionFraction] = for {
-        (asset, position) <- currentPortfolio
-        posFraction <- position.breakdown
-        PositionFraction(datetimeOpening, pricePayed, remainingQuantity) = posFraction
-      } yield UnzippedPositionFraction(asset, datetimeOpening, pricePayed, remainingQuantity)
-    writeAsCsv(
-      data = unzippedPositionFractions.toSeq,
-      filePath = filePathsRoot + positionFileName,
-      append = false,
-      headers = Some(
-        Seq(
-          "exchange",
-            "ticker",
-            "datetimeOpening",
-            "currency",
-            "pricePayedAmount",
-            "remainingQuantity",
-        )
-      )
-    )
-
-    val assetsRecentPrices = getTradedAssets
-      .map(asset => AssetPrice(asset, asset.getMostRecentDateWithPrice, asset.getMostRecentPrice, asset.getMostRecentPriceHomogeneous))
-    writeAsCsv(
-      data = assetsRecentPrices.toSeq,
-      filePath = filePathsRoot + recentPricesFileName,
-      append = false,
-      headers = Some(
-        Seq(
-          "exchange",
-          "ticker",
-          "date",
-          "localCurrency",
-          "priceLocalCurrency",
-          "homogeneousCurrency",
-          "priceHomogeneousCurrency",
-        )
-      )
-    )
-  }
 }
 
 object Activity {
@@ -226,24 +149,5 @@ object Activity {
             "Trying to build a Position from an order that is neither buy nor sell"
           )
       }
-  }
-}
-
-case class AssetPrice(
-                            asset: Asset,
-                            maybeDate: Either[String, LocalDate],
-                            maybePriceOriginal: Either[String, Money],
-                            maybePriceHomogeneous: Either[String, Money]
-                          ) extends CSVSerializer {
-  override def toCsv: String = {
-    val dateStr: String = maybeDate match
-      case Left(_) => ""
-      case Right(date) => date.toString
-    def maybePriceToStr(maybePrice: Either[String, Money]): String = maybePrice match
-      case Left(_) => ""
-      case Right(Money(currency, amount)) => s"$currency,$amount"
-    val priceStrOriginal = maybePriceToStr(maybePriceOriginal)
-    val priceStrHomogeneous = maybePriceToStr(maybePriceHomogeneous)
-    s"${asset.exchange},${asset.ticker},$dateStr,$priceStrOriginal,$priceStrHomogeneous"
   }
 }

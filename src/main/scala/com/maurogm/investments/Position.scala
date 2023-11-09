@@ -12,17 +12,6 @@ case class PositionFraction(
     remainingQuantity: BigDecimal
 )
 
-case class UnzippedPositionFraction(
-    asset: Asset,
-    datetimeOpening: LocalDateTime,
-    pricePayed: Money,
-    remainingQuantity: BigDecimal
-) extends CSVSerializer {
-  override def toCsv: String = {
-    s"${this.asset.exchange},${this.asset.ticker},${this.datetimeOpening},${this.pricePayed.currency},${this.pricePayed.amount},${this.remainingQuantity}"
-  }
-}
-
 case class SaleResult(
     dateOpening: LocalDateTime,
     pricePayed: Money,
