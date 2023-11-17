@@ -140,6 +140,7 @@ case class ParsedMovementCocos(
 
   private def parseEspecie(especie: String): String = { // TODO: Parsear en serio esto
     especie
+      .replace(",", ".")
   }
 
   override def toMovement: Movement = {

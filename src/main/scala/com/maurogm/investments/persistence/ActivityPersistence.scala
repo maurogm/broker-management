@@ -28,10 +28,10 @@ object ActivityPersistence {
       cc: CurrencyConverter
   ): Unit = {
     movementsToCSV(
-      activity.movements,
+      activity.movements.sortBy(_.date),
       filePath = filePathsRoot + movementsFileName
     )
-    ordersToCSV(activity.orders, filePath = filePathsRoot + ordersFileName)
+    ordersToCSV(activity.orders.sortBy(_.datetime), filePath = filePathsRoot + ordersFileName)
     positionsToCSV(
       activity.currentPortfolio,
       filePath = filePathsRoot + positionFileName
@@ -154,7 +154,7 @@ case class AssetPrice(
       case Right(date) => date.toString
     def maybePriceToStr(maybePrice: Either[String, Money]): String =
       maybePrice match
-        case Left(_)                        => ""
+        case Left(_)                        => ","
         case Right(Money(currency, amount)) => s"$currency,$amount"
     val priceStrOriginal = maybePriceToStr(maybePriceOriginal)
     val priceStrHomogeneous = maybePriceToStr(maybePriceHomogeneous)

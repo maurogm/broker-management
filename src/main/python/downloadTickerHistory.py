@@ -23,6 +23,13 @@ parser.add_argument(
     type=str,
     help="Omits the headers",
 )
+parser.add_argument(
+    "--currency",
+    required=False,
+    default = "USD",
+    type=str,
+    help="Specifies in which currency the prices are in",
+)
 
 # %% Argument parsing
 args = parser.parse_args()
@@ -30,12 +37,13 @@ args = parser.parse_args()
 TICKER = args.ticker
 OUTPUT_PATH = args.output_path
 NO_HEADERS = args.no_header
+CURRENCY = args.currency
 
 # %%
 downloaded_data = yf.Ticker(TICKER).history(period="max").reset_index()
 colunmn_names = ["Date", "currency", "Close", "Open", "High", "Low", "operated_amount", "Volume", "n_operations"]
 data_adjusted = (downloaded_data
-                 .assign(currency="USD")
+                 .assign(currency=CURRENCY)
                  .assign(operated_amount = "")
                  .assign(n_operations = "")
                  .assign(Date = downloaded_data['Date'].dt.strftime('%Y-%m-%dT%H:%M:%S'))

@@ -24,7 +24,7 @@ object CurrencyConversionPersistence {
     }.toSeq
 
     writeAsCsv(
-      data = dateDatapoints,
+      data = dateDatapoints.sortBy(_.date),
       filePath = filePath,
       append = false,
       headers = Option(headers)
